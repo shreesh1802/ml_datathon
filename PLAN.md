@@ -178,3 +178,20 @@ What was learned, and how it changed the plan:
 - **Second-stage model did not help** and was dropped under the keep rule.
 - **Velocity bots are about half as frequent in October** (7 phone bursts against about 13 expected). No adapted variant was found in a cell-by-cell comparison with September.
 - **`sim_swap` and `account_takeover` swap labels at session level** in about a quarter of training sessions. Since test labels are clean, the check understates these two classes.
+
+Per-class probes (14 Nov). Each probe is G1 with one class switched to legit, and that class's October F1 ≈ (0.5332 − score) × 12:
+
+| class | probe score | October F1 | Jul–Sep F1 |
+|---|---|---|---|
+| mule_account | 0.4881 | 0.541 | 0.426 |
+| account_takeover | 0.4906 | 0.511 | 0.422 |
+| sim_swap | 0.4895 | 0.524 | 0.476 |
+| phishing_collect | 0.4900 | 0.518 | 0.465 |
+| fake_cashback | 0.4901 | 0.517 | 0.368 |
+| merchant_collusion | 0.5082 | 0.300 | 0.386 (0.32–0.41 by month) |
+
+- The five unprobed classes (bot, layering, QR, refund, loan) sum to about 2.50, against 2.48 in Jul–Sep. They do not show the October uplift of the probed classes.
+- **Collusion:** the model only catches round-amount merchant bursts, about 0.88 precise but with 18% recall. The probabilities are bimodal, so lowering τ changes no test rows. The 0.30 sits within public noise (about 130 collusion rows in the public 30%) plus a month-to-month range of 0.32–0.41.
+- **Bots:** all 298 October bot predictions come from the block override (269 on the shared pool 420000–422977, which continues into October, and 29 on the October bot block). Non-block bot labels look ordinary in training too.
+- **October-informed thresholds** (τ_k = October F1 / 2 for the probed classes) change only 13 test rows. Thresholds are exhausted.
+- **`txn_id`** is not an md5, sha1 or sha256 hash of a row index (hit rate equals chance).
