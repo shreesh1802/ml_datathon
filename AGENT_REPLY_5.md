@@ -75,7 +75,7 @@ All agree. The agent's anchors do not place phones 474523–474526 (4 rows betwe
 
 ## What is still open
 
-1. **Burst size as a general check.** The size table suggests a simple audit: any October merchant whose round-amount burst is predicted collusion but has 9 or fewer rows, or predicted refund abuse with 11 or more. Not yet run across all October merchants; only block-seeded ones were checked.
+1. **Burst size as a general check: done, nothing more to fix** (`src/burst1.py`). Size is a near-perfect separator on training data: 10 or more round-amount rows is collusion (36 of 36 bursts), 5–9 is refund abuse (51 of 55), 1–2 is QR swap (276 of 278). Three-row bursts are 92% QR swap and four-row bursts 86% refund abuse. After G8 no October burst contradicts its size: 3 bursts of 13+ are predicted collusion, 11 of 5–9 refund abuse, and all 90 of 1–4 rows QR swap (October has no four-row bursts).
 2. **Which unprobed class is weakest in October** (bot, layering, QR swap, refund, loan).
 3. **Phones 474523–474526:** loan or collusion.
 
