@@ -213,3 +213,14 @@ Where the score is capped, and what was tested to get past each cap:
 - **Unknown:** the October F1 of bot, layering, QR, refund and loan (sum about 2.50). They were not probed to save uploads.
 
 Open gap: the top three sit at 0.5497–0.5505 against our 0.5332. None of the checks above explains it.
+
+## 13. External audit check (14 Nov)
+
+An outside audit (`apply_winning_fixes.py`) proposed four fixes. Checked against the labelled months (`src/ver1.py`–`ver5.py`):
+
+- **Collusion amount rule: wrong.** Merchant payments of exactly 1000/2000/2500/5000/10000 carry three labels in training (qr_swap 807, merchant_collusion 501, refund_abuse 314, legit 247). The model already calls all of them fraud, so the rule changes 0 rows in every training month.
+- **`COLLECT_REQUEST` typo: does not exist.** `features2.py` line 70 says `'COLLECT'`.
+- **Block table: mostly wrong, one real find.** The audit's 9-phone SIM block contradicts the training run. But its ID-density observation holds: fraud-block phone numbers have gaps and legit ones have none (training run: last missing ID 428454, then 45,177 rows of which 45,145 are legit). Density per block also differs: SIM 0.71, takeover 0.27.
+- **Cross-block patterns: not verifiable** on labelled data, not applied.
+
+`src/make_sub_g3.py` writes `sub_G3.csv` = G1 with 19 rows changed: 4 rows on 474545–474549 to merchant_collusion (fraud range ends at 474551), and 15 rows on 473971–473979 from takeover to SIM swap (density change point 473988, corrected by the 10-ID overshoot seen on the training run).
