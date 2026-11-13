@@ -42,6 +42,18 @@ for hop in range(HOPS):
     j['dt']=(j.t-j.st).abs(); j=j.sort_values('dt').drop_duplicates('i')
     new[j.i.values]=j.styp.values; typ[j.i.values]=j.styp.values; is_src[:]=False; is_src[j.i.values]=True
     a=j[~te[j.i.values]]; print(f'hop {hop+1}: train rows changed {len(a)}: label==new {(y[a.i.values]==a.styp.values).sum()}, label==old {(y[a.i.values]==a.cur.values).sum()} | test rows changed {te[j.i.values].sum()}')
+# merchant step: round-amount merchant bursts come in three types (collusion, QR swap, refund abuse). A round-amount
+# payment on a block phone reveals the type of the other round-amount payments at that merchant within MWIN.
+if os.environ.get('MERCH','1')=='1':
+    MWIN=int(os.environ.get('MWIN',86400)); TRIO=[L['merchant_collusion'],L['qr_swap'],L['refund_abuse']]
+    mer=al.receiver_type.values=='MERCHANT'; r5=mer&(al.amount.values%500==0)
+    sm=seedmask&r5&np.isin(cls,TRIO)
+    sd=pd.DataFrame({'key':R[sm],'st':t[sm],'styp':cls[sm],'run':run[sm]})
+    cand=np.where(~seedmask&(dn<420000)&r5&np.isin(new,TRIO))[0]
+    tg=pd.DataFrame({'i':cand,'key':R[cand],'t':t[cand],'cur':new[cand],'run':run[cand]})
+    j=sd.merge(tg,on=['key','run']); j['dt']=(j.t-j.st).abs(); j=j[(j.dt<=MWIN)&(j.cur!=j.styp)].sort_values('dt').drop_duplicates('i')
+    a=j[~te[j.i.values]]; print(f'merchant step: train rows changed {len(a)}: label==new {(y[a.i.values]==a.styp.values).sum()}, label==old {(y[a.i.values]==a.cur.values).sum()} | test rows changed {te[j.i.values].sum()}')
+    new[j.i.values]=j.styp.values
 f0=macro_f1(y[tr],pred[tr],per_class=True); f1=macro_f1(y[tr],new[tr],per_class=True)
 print('training macro-F1 %.4f -> %.4f'%(f0.mean(),f1.mean())); print(pd.DataFrame({'before':f0.round(4),'after':f1.round(4),'delta':(f1-f0).round(4)},index=LABELS).query('delta!=0').to_string())
 ch=te&(new!=pred); print('test rows changed:',ch.sum()); print(pd.crosstab(np.array(LABELS)[pred[ch]],np.array(LABELS)[new[ch]],rownames=['from'],colnames=['to']).to_string())
