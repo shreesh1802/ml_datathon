@@ -224,3 +224,10 @@ An outside audit (`apply_winning_fixes.py`) proposed four fixes. Checked against
 - **Cross-block patterns: not verifiable** on labelled data, not applied.
 
 `src/make_sub_g3.py` writes `sub_G3.csv` = G1 with 19 rows changed: 4 rows on 474545–474549 to merchant_collusion (fraud range ends at 474551), and 15 rows on 473971–473979 from takeover to SIM swap (density change point 473988, corrected by the 10-ID overshoot seen on the training run).
+
+## 14. Phone-number gap signal (14 Nov, evening)
+
+- `sub_G3` scored **0.5389** public (G1 was 0.5332): 19 rows changed from the ID-density leak.
+- `src/segblock2.py` adds the gap signal to the segmentation: the count of missing phone numbers before each phone, scored against each block's density learned from the training run (SIM 0.71, takeover 0.26, legit 1.0). On the training run it matches 2,731 fraud-labelled rows against 2,720 before, and places the SIM/takeover boundary exactly where the labels change (425032 / 425039).
+- October changes against the old segmentation: 28 rows takeover → SIM swap (block now ends at 473987), 4 rows legit → collusion (fraud range ends at 474549), and 6 rows near the cashback/loan/collusion boundaries, which are uncertain by a few phones in either version.
+- `sub_G5` = `make_sub2.py sub_G5 E1,M1 --seg s2`. No boundary is typed in by hand; `run_all.sh` step 8 reproduces it. `sub_G4` (G3 plus 13 typed rows) is kept only as a reference.

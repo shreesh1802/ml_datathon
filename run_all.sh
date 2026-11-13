@@ -44,3 +44,8 @@ $PY src/train.py V1 --driftfix --labels d1 --extra feats2.pkl,feats_seg_s1.pkl -
 # 7. blend, apply the macro-F1 decision rule and the block override, write the file
 $PY src/make_sub2.py sub_G1 E1,M1 --seg s1
 $PY src/make_sub2.py sub_H1 E1,M1,V1,T1,MT1 --seg s1
+
+# 8. best upload: same blend, blocks re-segmented with the phone-number gap signal (fraud blocks have gaps,
+#    each block its own density; legit phones have none). Only the final block override uses it.
+$PY src/segblock2.py C5 s2
+$PY src/make_sub2.py sub_G5 E1,M1 --seg s2
