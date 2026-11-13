@@ -5,10 +5,12 @@ import os, argparse
 import numpy as np, pandas as pd
 from common import load_all, CACHE, SUBS, LABELS, macro_f1
 ap = argparse.ArgumentParser(); ap.add_argument('out'); ap.add_argument('tags'); ap.add_argument('--scale', type=float, default=1.0)
-ap.add_argument('--suffix', default=''); ap.add_argument('--seg', default=None); a = ap.parse_args()
+ap.add_argument('--suffix', default=''); ap.add_argument('--seg', default=None); ap.add_argument('--evallabels', default=None); a = ap.parse_args()
 al = load_all(); K = len(LABELS)
 y = al.label.map({l: i for i, l in enumerate(LABELS)}).fillna(-1).astype(int).values
 tr = (~al.is_test.values) & (al.timestamp.str[:7].values < '2026-10')
+if a.evallabels:   # clean-test view: patterned rows take their cleaned label, ordinary-looking fraud keeps its given label
+    yc = np.load(os.path.join(CACHE, f'y_{a.evallabels}.npy')); y = np.where(yc > 0, yc, y)
 tags = a.tags.split(',')
 oof = sum(np.load(os.path.join(CACHE, f'oof_{t}.npy')) for t in tags) / len(tags)
 pt = sum(np.load(os.path.join(CACHE, f'test_{t}{a.suffix}.npy')) for t in tags) / len(tags)

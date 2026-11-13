@@ -149,6 +149,11 @@ Device-number blocks (found 13 Nov evening, after the leaderboard showed three t
 - **G1 (E1+M1 blend, block override) public: 0.5332** (5th; 4th is 0.5400, top three 0.548–0.549).
 - **No October excess at low probabilities.** Compared month by month, October counts sit inside the Jul–Sep range for every class. Only phishing shifts, from very to moderately confident, and those rows are already labelled phishing.
 - **H1 = five-model blend** (E1, M1, V1 smaller trees, T1 and MT1 on original types): check 0.5011 against 0.5005 for G1; differs from G1 on 13 rows.
+- **Ordinary-looking fraud rows are random rows** (`src/gen_probe.py`): no clustering in time near patterned fraud of their class, no extra copying of values from other rows, and their neighbours on the same sender, receiver or phone are fraud at exactly the legit rate (4.6% vs 4.6%). Nothing can recover them.
+- **Thresholds don't matter:** decision cut-offs scaled ×0.8 or ×1.25, or tuned on clean-view labels, change fewer than 20 of 260,582 test rows.
+- **Public score noise:** a 78k-row public score has sd about 0.0095, and public vs private for the same split differs by up to ±0.024 (95%). That noise is shared by all teams, so ranking gaps are mostly real.
+- **Clean-view check is about 0.571** (patterned rows scored against cleaned labels). Remaining errors among detected fraud: takeover called SIM swap (22% of takeover rows), phishing and fake cashback mixed (about 250 rows).
+- **The ₹1–10 credit then big repayment pattern is genuinely shared** by fake cashback and phishing: 391 training pairs, 60% fake cashback and 40% phishing every month, and known phishing-block phones show it too (15 of 226 rows). Not label noise, so no relabelling gain.
 - **No other ID leaks.** Transaction IDs, row order, account and merchant numbers and value digits give AUC about 0.5 for the ordinary-looking fraud rows.
 
 Later checks (13 Nov evening):
