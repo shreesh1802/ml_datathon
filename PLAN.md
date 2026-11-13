@@ -139,7 +139,7 @@ Device-number blocks (found 13 Nov evening, after the leaderboard showed three t
 - **No adapted bots among known bot accounts.** Legit-predicted October rows from past bot accounts: 1,017 against 1,006 expected.
 - **Linking from block phones adds nothing.** Rows sharing a receiver or sender with a fraud-block phone are fraud only when they already show a pattern.
 - **Public score after the device-block work: 0.5128** (4th; top three 0.544–0.549).
-- **E1 public score: 0.5305** (4th; third place 0.5443).
+- **F1t public score: 0.5305** (4th; third place 0.5443). Correction: this was the history-feature run F1 (plus the segmentation), not E1; E1t was never uploaded.
 - **Block override (E2):** when the block and the model disagree on training rows, the block is right 83 times and the model 2. Applied to every row on a fraud-block phone; changes 20 October rows.
 - **One graph per month (M1):** check 0.498 against 0.500 for E1; October phishing confidence partly recovers. Blended with E1 as `sub_G1.csv` (differs from E1 on 47 rows).
 - **Checked and ruled out after 0.5305:** October columns on known block rows (ordinary-looking fraud matches legit on every column, AUC about 0.5); a phone-level SIM-swap/takeover classifier (AUC 0.63, boundary stays within 2 phones); separating look-alike types on own phones (mule vs bot-labelled 0.5, QR vs refund 0.55, others 0.6–0.78 with small minority shares); November tail rows (already all flagged).
@@ -154,6 +154,7 @@ Device-number blocks (found 13 Nov evening, after the leaderboard showed three t
 - **Public score noise:** a 78k-row public score has sd about 0.0095, and public vs private for the same split differs by up to ±0.024 (95%). That noise is shared by all teams, so ranking gaps are mostly real.
 - **Clean-view check is about 0.571** (patterned rows scored against cleaned labels). Remaining errors among detected fraud: takeover called SIM swap (22% of takeover rows), phishing and fake cashback mixed (about 250 rows).
 - **The ₹1–10 credit then big repayment pattern is genuinely shared** by fake cashback and phishing: 391 training pairs, 60% fake cashback and 40% phishing every month, and known phishing-block phones show it too (15 of 226 rows). Not label noise, so no relabelling gain.
+- **H1 (five-model blend) public: 0.5319**, below G1's 0.5332. It changed only 13 rows, so the dip is noise-sized. G1 stays the best upload.
 - **No other ID leaks.** Transaction IDs, row order, account and merchant numbers and value digits give AUC about 0.5 for the ordinary-looking fraud rows.
 
 Later checks (13 Nov evening):
