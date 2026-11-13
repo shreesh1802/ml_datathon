@@ -195,3 +195,21 @@ Per-class probes (14 Nov). Each probe is G1 with one class switched to legit, an
 - **Bots:** all 298 October bot predictions come from the block override (269 on the shared pool 420000–422977, which continues into October, and 29 on the October bot block). Non-block bot labels look ordinary in training too.
 - **October-informed thresholds** (τ_k = October F1 / 2 for the probed classes) change only 13 test rows. Thresholds are exhausted.
 - **`txn_id`** is not an md5, sha1 or sha256 hash of a row index (hit rate equals chance).
+
+## 12. Bottlenecks (14 Nov, final round of checks)
+
+Where the score is capped, and what was tested to get past each cap:
+
+- **Ordinary-looking fraud is random by construction (the main cap).** 61.5% of fraud-labelled rows are a flat 2.35% of all rows every day, with about 1.6 such rows per patterned row in every class. A perfect detector of patterned fraud therefore scores about 0.555 per fraud class (macro about 0.59). Checks that found no signal (`src/cons1.py`–`cons5.py`):
+  - Field consistency: device and SIM "birth dates" are random per row for legit rows too; account age is consistent for all rows.
+  - Raw digits, ratios between fields, second of the minute, ID numbers, file position: AUC 0.52, all from the known phone-number leak.
+  - Account and merchant attributes for sender and receiver (KYC, bank, OS, opening date, city matches): AUC 0.505.
+  - Shared sender, receiver or phone with patterned fraud of the same type: same rate as legit rows.
+  - Time distance to the nearest patterned event of the same type: same distribution as legit rows.
+- **Probed classes sit at about 94% of that ceiling** (mule 0.541, SIM 0.524, phishing 0.518, cashback 0.517, takeover 0.511).
+- **Velocity bots: October has fewer.** All patterned bots are 26–58 payment bursts from shared pool phones (420000–422977). October has 269 pool rows (about 7 bursts against 13 expected). No slower or spread-out variant exists: device and sender counts of small e-commerce/gaming payments over 1 hour to 7 days match training, and no phone outside the pool has more than 3 senders (`src/bot2.py`, `bot3.py`).
+- **Merchant collusion: low recall, structure unchanged.** The repeat sender-to-merchant pair structure in October matches training once halved; rows with 4 or more round-amount repeats in 2 days number 92 in October and G1 already calls 75 of them collusion. No non-round variant appeared (`src/col2.py`).
+- **Thresholds are exhausted.** October-informed thresholds change 13 rows; collusion probabilities are bimodal.
+- **Unknown:** the October F1 of bot, layering, QR, refund and loan (sum about 2.50). They were not probed to save uploads.
+
+Open gap: the top three sit at 0.5497–0.5505 against our 0.5332. None of the checks above explains it.
