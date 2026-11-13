@@ -49,3 +49,7 @@ $PY src/make_sub2.py sub_H1 E1,M1,V1,T1,MT1 --seg s1
 #    each block its own density; legit phones have none). Only the final block override uses it.
 $PY src/segblock2.py C5 s2
 $PY src/make_sub2.py sub_G5 E1,M1 --seg s2
+
+# 9. event-level type correction: a row on a block phone reveals its event's true type; linked rows predicted as the
+#    lookalike type take the block type (training check: 124 rows changed, 112 match the label, 1 was right before)
+$PY src/prop3.py sub_G5 sub_G6 s2

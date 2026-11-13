@@ -234,3 +234,9 @@ An outside audit (`apply_winning_fixes.py`) proposed four fixes. Checked against
 - `sub_G5` scored **0.5405** public (4th). Follow-up checks (`src/ord1.py`–`ord3.py`, `src/xb1.py`):
   - The files are shuffled only within chunks (training: six chunks of about 260,677 rows; test: two of 130,291), and legit extra-phone numbers rise chunk by chunk. But every chunk has the same dates, senders and label mix, so file position carries no label signal.
   - Pattern versus block: where the block-blind model is confident of another fraud type on a block phone, the training label agrees with the block (404 of 483; 6 agree with the model). Almost all cases are SIM-block phones that look like takeovers. The block override stays as it is.
+
+## 15. Lookalike variants and event-level correction (14 Nov, night)
+
+- **The fraud-to-fraud mix-ups are deliberate lookalike variants, not label noise** (`src/pairs1.py`). A model trained on the given types (T1) confuses them exactly as much. Takeover-labelled rows predicted SIM swap look identical to SIM swaps (fresh SIM, own phone, night); the SIM-swap block phones look identical to takeovers (new phone, away from home). The G3 and G5 score gains confirm that the block type is the true October label.
+- **A block phone reveals its event's true type** (`src/prop3.py`). Rows linked to a block phone by a shared account within 6 hours, and predicted as that type's lookalike, take the block's type; changed rows pass it on once more (two hops). Training check: 124 rows changed, 112 match the label, 1 was right before; macro-F1 0.5008 → 0.5028. Flips outside the lookalike pairs are wrong on training data and are excluded.
+- `sub_G6` = G5 with 14 October rows changed (layering → mule 9, mule → bot 2, SIM swap → takeover 3). `run_all.sh` step 9 reproduces it.
