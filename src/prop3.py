@@ -26,7 +26,7 @@ PAIRS={(L[a],L[b]) for a,b in PAIRS}
 WIN=int(os.environ.get('WIN',6*3600)); HOPS=int(os.environ.get("HOPS",2))
 t=al.t.values.astype(np.int64); S=al.sender_id.values; R=al.receiver_id.values; p2p=al.receiver_type.values=='P2P'
 run=te.astype(int)
-seedmask=(cls>0)&(dn>=423001)          # block phones outside the shared bot pool
+seedmask=(cls>0)&(dn>=int(os.environ.get("SEEDLO",423001)))          # block phones outside the shared bot pool
 new=pred.copy(); src_t=np.where(seedmask,t,0); typ=np.where(seedmask,cls,0); is_src=seedmask.copy()
 for hop in range(HOPS):
     sd=pd.DataFrame({'st':t[is_src],'styp':typ[is_src],'S':S[is_src],'R':R[is_src],'run':run[is_src],'p2p':p2p[is_src]})

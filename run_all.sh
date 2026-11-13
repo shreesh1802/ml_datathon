@@ -53,3 +53,6 @@ $PY src/make_sub2.py sub_G5 E1,M1 --seg s2
 # 9. event-level type correction: a row on a block phone reveals its event's true type; linked rows predicted as the
 #    lookalike type take the block type (training check: 124 rows changed, 112 match the label, 1 was right before)
 $PY src/prop3.py sub_G5 sub_G6 s2
+
+# 10. same correction with a 12-hour link window (training check: 147 rows changed, 125 match the label, 3 were right before)
+WIN=43200 $PY src/prop3.py sub_G5 sub_G7 s2
