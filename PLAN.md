@@ -155,6 +155,12 @@ Device-number blocks (found 13 Nov evening, after the leaderboard showed three t
 - **Clean-view check is about 0.571** (patterned rows scored against cleaned labels). Remaining errors among detected fraud: takeover called SIM swap (22% of takeover rows), phishing and fake cashback mixed (about 250 rows).
 - **The ₹1–10 credit then big repayment pattern is genuinely shared** by fake cashback and phishing: 391 training pairs, 60% fake cashback and 40% phishing every month, and known phishing-block phones show it too (15 of 226 rows). Not label noise, so no relabelling gain.
 - **H1 (five-model blend) public: 0.5319**, below G1's 0.5332. It changed only 13 rows, so the dip is noise-sized. G1 stays the best upload.
+- **Research round (13 Nov night).** IEEE-CIS winners used their user ID only for post-processing (averaging predictions per user), because most users did not reappear in test. The analogue here (type voting within a victim session, receiver-day or device-day) changes nothing: the model already types whole sessions consistently (check +0.0001).
+- **Takeover vs SIM swap:** 98 of 157 own-phone takeover sessions look exactly like SIM swaps (fresh SIM, night, fast login). Separable only weakly (phone-level AUC 0.63).
+- **No hidden October bots:** zero legit-predicted device or sender bursts in any month; fast-login merchant traffic in October is exactly half the training level.
+- **October device blocks checked phone by phone** (refund to collusion): boundaries fall where row patterns change.
+- **Split follows fraud-event start:** 147 training rows are dated October (mostly refund abuse, mule, collusion) and 46 test rows are dated November. Only about 40 test rows link to them, mostly via shared merchants.
+- **Per-class probe uploads** (`submissions/probe/`): G1 with one fraud class switched to legit. The public drop times 12 is that class's October F1. Compare with the clean-view training F1 (mule .52, bot .58, layer .64, SIM .54, takeover .47, phish .59, QR .60, refund .59, cashback .43, loan .46, collusion .45) to see which classes fall short in October.
 - **No other ID leaks.** Transaction IDs, row order, account and merchant numbers and value digits give AUC about 0.5 for the ordinary-looking fraud rows.
 
 Later checks (13 Nov evening):
