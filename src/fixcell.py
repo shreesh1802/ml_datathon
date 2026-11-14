@@ -25,7 +25,14 @@ for h in ['2026-07','2026-08','2026-09']:
 s=pd.read_csv(os.path.join(SUBS,sys.argv[1]+'.csv')); lab=s.label.values.copy(); c=cell[te]&(lab=='phishing_collect')
 lab[c]='legit'; print('test rows changed:',c.sum())
 # second rule: a row on a legit-range extra phone is legit (training: 32 fraud labels in 45,177 rows; all 11 fraud predictions there were legit)
-if len(sys.argv)>3 and sys.argv[3]=='legitrange':
+if 'legitrange' in sys.argv[3:]:
     lr=(((dn>=428455)&(dn<473632))|(dn>=474552)); a=lr&tr&(pred>0); print('legit-range rule, training:',a.sum(),'rows, legit-labelled',int((y[a]==0).sum()))
     c2=lr[te]&(lab!='legit'); print('legit-range rule, test rows changed:',c2.sum()); lab[c2]='legit'
+# third rule: QR swap predicted on a MERCHANT payment with a decimal amount is an ordinary shop payment whose mismatch
+# flag happens to be set (training: 245 rows, 18% QR swap, 80% legit; real merchant QR swaps use round amounts)
+if 'qrdec' in sys.argv[3:]:
+    q=L['qr_swap']; cell2=(al.receiver_type.values=='MERCHANT')&(amt%1!=0)&(dn<420000); a=cell2&tr&(pred==q)
+    p2=pred.copy(); p2[cell2&(pred==k)]=pred[cell2&(pred==k)]; p2[cell&(pred==k)]=0; b0=macro_f1(y[tr],p2[tr],per_class=True); p2[cell2&(pred==q)]=0; b1=macro_f1(y[tr],p2[tr],per_class=True)
+    print(f'QR-decimal rule, training: {a.sum()} rows, {int((y[a]==q).sum())} were QR swap, {int((y[a]==0).sum())} legit | macro-F1 {b0.mean():.4f} -> {b1.mean():.4f} | QR F1 {b0[q]:.4f} -> {b1[q]:.4f} | by month',[(round(macro_f1(y[tr&(mo==h)],np.where(cell[tr&(mo==h)]&(pred[tr&(mo==h)]==k),0,pred[tr&(mo==h)])),4),round(macro_f1(y[tr&(mo==h)],p2[tr&(mo==h)]),4)) for h in ['2026-07','2026-08','2026-09']])
+    c3=cell2[te]&(lab=='qr_swap'); print('QR-decimal rule, test rows changed:',c3.sum()); lab[c3]='legit'
 pd.DataFrame({'id':s.id,'label':lab}).to_csv(os.path.join(SUBS,sys.argv[2]+'.csv'),index=False); print('wrote',sys.argv[2])

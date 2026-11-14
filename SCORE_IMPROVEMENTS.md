@@ -1,6 +1,6 @@
 # What improved the score
 
-ML Gradient Wars 2026, "UPI Fraud Rings", team Vhagar. Public macro-F1 went from 0.2947 to 0.5453 over 13–14 November 2026. This note lists each step that raised the score, in order, and the things that did not.
+ML Gradient Wars 2026, "UPI Fraud Rings", team Vhagar. Public macro-F1 went from 0.2947 to 0.5482 over 13–14 November 2026. This note lists each step that raised the score, in order, and the things that did not.
 
 ## The steps that worked
 
@@ -17,6 +17,7 @@ ML Gradient Wars 2026, "UPI Fraud Rings", team Vhagar. Public macro-F1 went from
 | 9 | `sub_G5` | 0.5405 | +0.0016 | Gap signal built into the segmentation (19 more rows) |
 | 10 | `sub_G6` | 0.5418 | +0.0013 | Event-level type correction from block phones (14 rows) |
 | 11 | `sub_G9` | 0.5453 | +0.0035 | Amount features and retrain, wider event correction, merchant step |
+| 12 | `sub_G12` | 0.5482 | +0.0029 | Phishing false-alarm fix (46 rows), class-size-aware decision rule, legit-range phone rule |
 
 ## What each step did
 

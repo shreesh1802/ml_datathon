@@ -84,3 +84,7 @@ $PY src/fixcell.py sub_G9 sub_G10
 $PY src/make_sub2.py sub_G12raw E2n,M2 --seg s2 --sizeaware
 TAGS=E2n,M2 WIN=43200 $PY src/prop3.py sub_G12raw sub_G12ev s2
 $PY src/fixcell.py sub_G12ev sub_G12 legitrange
+
+# 15. plus the QR-decimal rule: QR swap predicted on a merchant payment with a decimal amount is set to legit
+#     (training: 245 rows, 18% QR swap, 80% legit)
+$PY src/fixcell.py sub_G12ev sub_G13 legitrange qrdec
