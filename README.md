@@ -1,13 +1,13 @@
 # UPI Fraud Rings — team Vhagar (ML Gradient Wars 2026)
 
-12-class macro-F1 on October 2026 UPI transactions. Best public score: **0.5418** (`sub_G6.csv`). The latest file from the same pipeline is `sub_G8.csv`.
-`run_all.sh` reproduces every submission from the raw data, ending with `sub_G6.csv` (step 9), `sub_G7.csv` (step 10) and `sub_G8.csv` (step 11). See `SCORE_IMPROVEMENTS.md` for what each step added.
+12-class macro-F1 on October 2026 UPI transactions. Best public score: **0.5453** (`sub_G9.csv`).
+`run_all.sh` reproduces every submission from the raw data, ending with `sub_G9.csv` (step 12). See `SCORE_IMPROVEMENTS.md` for what each step added.
 
 ## How to run
 
 1. Put the competition files (`train.csv`, `test.csv`, `accounts.csv`, `merchants.csv`) in a folder `upi-fraud-rings/` next to this README. They are not in this repository.
 2. `pip install -r requirements.txt` (developed on Python 3.14, Windows 11, 15 GB RAM).
-3. `bash run_all.sh` (writes `submissions/sub_G1.csv` through `submissions/sub_G8.csv`)
+3. `bash run_all.sh` (writes `submissions/sub_G1.csv` through `submissions/sub_G9.csv`)
 
 Seeds are fixed. LightGBM runs multi-threaded, so a handful of borderline rows can differ between runs.
 

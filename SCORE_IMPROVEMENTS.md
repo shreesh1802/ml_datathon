@@ -1,6 +1,6 @@
 # What improved the score
 
-ML Gradient Wars 2026, "UPI Fraud Rings", team Vhagar. Public macro-F1 went from 0.2947 to 0.5418 over 13–14 November 2026. This note lists each step that raised the score, in order, and the things that did not.
+ML Gradient Wars 2026, "UPI Fraud Rings", team Vhagar. Public macro-F1 went from 0.2947 to 0.5453 over 13–14 November 2026. This note lists each step that raised the score, in order, and the things that did not.
 
 ## The steps that worked
 
@@ -16,8 +16,7 @@ ML Gradient Wars 2026, "UPI Fraud Rings", team Vhagar. Public macro-F1 went from
 | 8 | `sub_G3` | 0.5389 | +0.0057 | Phone-number gap signal (19 rows) |
 | 9 | `sub_G5` | 0.5405 | +0.0016 | Gap signal built into the segmentation (19 more rows) |
 | 10 | `sub_G6` | 0.5418 | +0.0013 | Event-level type correction from block phones (14 rows) |
-
-`sub_G7` (the same correction with a wider link window, 8 more rows) is built and validated but its score is not recorded here yet.
+| 11 | `sub_G9` | 0.5453 | +0.0035 | Amount features and retrain, wider event correction, merchant step |
 
 ## What each step did
 
@@ -60,6 +59,12 @@ Each fraud type has a minority variant that behaves like another type (for examp
 - Training check: 124 rows changed, 112 match the label, 1 was right before. Macro-F1 0.5008 → 0.5028.
 - In October: 14 rows changed.
 
+### 10 → 11: Amount features and retrain (+0.0035)
+- **Amount digits (`src/features3.py`).** 99.4% of legit person-to-person payments in whole rupees are multiples of 10, so whole-rupee amounts that are not mark fraud. A tree cannot learn divisibility from the raw amount, so this was new information. Also exact phishing amounts (1999, 4999, 9999 and similar) and window counts of both.
+- **Retrain.** Both models were retrained with these features (E2n and M2). Held-out months: 0.5037 against 0.5008 for the old blend; phishing gains most (+0.014 F1).
+- **Wider event correction.** The link window went from 6 to 12 hours, and a merchant step was added: a round-amount merchant payment on a block phone gives its type to the other round-amount payments at that merchant within a day.
+- Training check for the whole file: 0.5057 against 0.5030 for G8.
+
 ## What did not improve the score
 
 | Tried | Result |
@@ -73,6 +78,8 @@ Each fraud type has a minority variant that behaves like another type (for examp
 | Following a row's pattern over its block | On training data the block is right 404 of 483 times |
 | Separating lookalike variants by event shape | Bot-as-mule AUC 0.50; best pairs net about 2 rows each |
 | Pool phones as seeds for the event correction | 14 wrong flips on training |
+| Second feature set (`features4.py`: balance clamps, exact cut-offs, bait split) | 0.5028 on held-out months, same as without it; trees already find thresholds |
+| Cross-month "fraud ring" account features | No gain in the blend; left out of the all-months model |
 
 ## Why the score is capped
 
