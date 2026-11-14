@@ -8,7 +8,15 @@ tr=(~te)&(mo<'2026-10'); y=al.label.map(L).fillna(-1).astype(int).values
 amt=al.amount.values; dn=al.device_id.str[2:].astype(int).values
 ex=np.isin(amt,[1950.,1990.,1999.,4950.,4990.,4999.,9950.,9990.,9999.,24950.,24990.,24999.])
 cell=(al.txn_type.values=='COLLECT')&(al.receiver_type.values=='P2P')&(amt%10==0)&(amt%500!=0)&~ex&(dn<420000)
-pred=np.load(f'{CACHE}/pred_G9raw.npy').copy()                       # training-side check uses the G9 blend before event corrections
+# training-side check: the blend's out-of-fold predictions with the F/2 rule and block override (no cached file needed)
+K=len(LABELS); TAGS=os.environ.get('TAGS','E2n,M2').split(',')
+oof=sum(np.load(f'{CACHE}/oof_{g}.npy') for g in TAGS)/len(TAGS)
+def decide(p,tau):
+    r=p[:,1:]/tau[1:]; k=r.argmax(1)+1; return np.where(r.max(1)>1,k,0)
+tau=np.full(K,.25)
+for it in range(6):
+    f=macro_f1(y[tr],decide(oof[tr],tau),per_class=True); tau=np.r_[1,np.clip(f[1:]/2,.1,.45)]
+pred=decide(oof,tau); cls=pd.read_pickle(f'{CACHE}/feats_seg_s2.pkl').seg_class.values.astype(int); pred[cls>0]=cls[cls>0]
 k=L['phishing_collect']; m=cell&(pred==k)&tr
 f0=macro_f1(y[tr],pred[tr],per_class=True); p1=pred.copy(); p1[cell&(pred==k)]=0; f1=macro_f1(y[tr],p1[tr],per_class=True)
 print(f'training: {m.sum()} rows changed, {int((y[m]==k).sum())} were phishing, {int((y[m]==0).sum())} legit | macro-F1 {f0.mean():.4f} -> {f1.mean():.4f} | phishing F1 {f0[k]:.4f} -> {f1[k]:.4f}')

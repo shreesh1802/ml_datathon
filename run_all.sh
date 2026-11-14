@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Reproduces submissions/sub_G1.csv (public 0.5332) and sub_H1.csv from the raw data in upi-fraud-rings/.
-# Needs about 12 GB of free RAM; run the steps one at a time, never in parallel. Total time is roughly 60 minutes on a laptop CPU.
+# Reproduces every submission, from sub_G1.csv to sub_G12.csv, from the raw data in upi-fraud-rings/.
+# Needs about 12 GB of memory available (RAM plus page file) and 15 GB of free disk; run the steps one at a time, never in parallel. Total time is about 60 minutes on a laptop CPU.
 set -e
 cd "$(dirname "$0")"
 PY="python -W ignore"

@@ -9,7 +9,7 @@
 2. `pip install -r requirements.txt` (developed on Python 3.14, Windows 11, 15 GB RAM).
 3. `bash run_all.sh` (writes `submissions/sub_G1.csv` through `submissions/sub_G9.csv`)
 
-Seeds are fixed. LightGBM runs multi-threaded, so a handful of borderline rows can differ between runs.
+Seeds are fixed. LightGBM runs multi-threaded, so a few dozen borderline rows can differ between runs: a from-scratch rerun on 14 Nov reproduced each submission to within 27–68 of 260,582 rows (about 0.02%).
 
 ## Approach
 
