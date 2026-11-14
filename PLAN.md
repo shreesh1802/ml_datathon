@@ -267,3 +267,12 @@ Trees find thresholds on raw columns but not digit patterns or exact repeats, so
 - **Rows called fraud, wrong type:** no cell where another fraud type is the majority.
 - **Rows called fraud, mostly legit:** one cell. Phishing predicted on a P2P collect request for a whole multiple of 10 (not of 500, not an exact phishing amount): 204 training rows, 8% phishing, 89% legit. The decision rule keeps a prediction only above about 24%.
 - `src/fixcell.py` sets that cell to legit: training macro-F1 0.5037 → 0.5042 (phishing F1 0.4789 → 0.4853), better in all three months. `sub_G10` = G9 with 46 October rows changed from phishing to legit (`run_all.sh` step 13).
+
+## 19. Final push: what was rechecked (14 Nov, evening)
+
+- **Event-start split.** All 46 November-dated test rows are already predicted fraud. None of the 147 October-dated training rows is ordinary-looking, so random fraud rows are not attached to events; 18 of the 147 (12%) are labelled legit, which confirms the unreported-fraud rate.
+- **Lookalike variants are a coin flip on whole events.** Training on original types with the amount features (run E2t) leaves the same rows mistyped. Full layering chains (three or more hops, over ₹20,000) carry the mule label 19–21% of the time, with the same hop retention (median 0.980), lengths and amounts (`src/look1.py`, `look2.py`). Nothing but a block phone separates them. On October block phones about 12–16% of detected fraud has a lookalike's type, which accounts for the distance between our class scores (about 0.52) and the per-class cap (about 0.59).
+- **Legit-range extra phones.** All 11 fraud predictions on them in training were legit; October has 3, now set to legit. They also show the false-alarm rate on legit-generated rows is about 0.02%.
+- **Model settings.** Smaller trees and a slower learning rate raise single models (E2a 0.5038 against 0.5028; M2a 0.5025 against 0.5018), but every blend stays at 0.5037–0.5038. No rebuild.
+- **Size-aware decision rule** (`make_sub2.py --sizeaware`, test in `src/rule2.py`). Assigning a row to class k changes F1_k by about 2(p_k − F_k/2)/(predicted_k + true_k), so the margin is divided by class size. Fitted on two months and scored on the third: 0.5034 against 0.5029, better in all three; fake cashback +0.006.
+- `sub_G12` = E2n + M2, size-aware rule, block override, event corrections, phishing cell fix, legit-range rule. It differs from G10 on 14 October rows (11 phishing → fake cashback, 3 to legit). `run_all.sh` step 14.

@@ -78,3 +78,9 @@ TAGS=E2n,M2 WIN=43200 $PY src/prop3.py sub_G9raw sub_G9 s2
 # 13. remove one miscalibrated cell: phishing predicted on a P2P collect request for a whole multiple of 10
 #     (training: 204 rows, 8% phishing, 89% legit; the decision rule keeps a prediction only above about 24%)
 $PY src/fixcell.py sub_G9 sub_G10
+
+# 14. size-aware decision rule (a correct row is worth more in a small class), then the same corrections as before,
+#     plus the legit-range rule (a row on a legit-range extra phone is legit)
+$PY src/make_sub2.py sub_G12raw E2n,M2 --seg s2 --sizeaware
+TAGS=E2n,M2 WIN=43200 $PY src/prop3.py sub_G12raw sub_G12ev s2
+$PY src/fixcell.py sub_G12ev sub_G12 legitrange

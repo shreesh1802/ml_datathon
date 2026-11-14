@@ -15,4 +15,9 @@ print(f'training: {m.sum()} rows changed, {int((y[m]==k).sum())} were phishing, 
 for h in ['2026-07','2026-08','2026-09']:
     q=tr&(mo==h); print('  ',h,round(macro_f1(y[q],pred[q]),4),'->',round(macro_f1(y[q],p1[q]),4),'rows',(m&q).sum())
 s=pd.read_csv(os.path.join(SUBS,sys.argv[1]+'.csv')); lab=s.label.values.copy(); c=cell[te]&(lab=='phishing_collect')
-lab[c]='legit'; print('test rows changed:',c.sum()); pd.DataFrame({'id':s.id,'label':lab}).to_csv(os.path.join(SUBS,sys.argv[2]+'.csv'),index=False); print('wrote',sys.argv[2])
+lab[c]='legit'; print('test rows changed:',c.sum())
+# second rule: a row on a legit-range extra phone is legit (training: 32 fraud labels in 45,177 rows; all 11 fraud predictions there were legit)
+if len(sys.argv)>3 and sys.argv[3]=='legitrange':
+    lr=(((dn>=428455)&(dn<473632))|(dn>=474552)); a=lr&tr&(pred>0); print('legit-range rule, training:',a.sum(),'rows, legit-labelled',int((y[a]==0).sum()))
+    c2=lr[te]&(lab!='legit'); print('legit-range rule, test rows changed:',c2.sum()); lab[c2]='legit'
+pd.DataFrame({'id':s.id,'label':lab}).to_csv(os.path.join(SUBS,sys.argv[2]+'.csv'),index=False); print('wrote',sys.argv[2])

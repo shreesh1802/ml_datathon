@@ -5,7 +5,7 @@ import os, argparse
 import numpy as np, pandas as pd
 from common import load_all, CACHE, SUBS, LABELS, macro_f1
 ap = argparse.ArgumentParser(); ap.add_argument('out'); ap.add_argument('tags'); ap.add_argument('--scale', type=float, default=1.0)
-ap.add_argument('--suffix', default=''); ap.add_argument('--seg', default=None); ap.add_argument('--evallabels', default=None); a = ap.parse_args()
+ap.add_argument('--sizeaware', action='store_true'); ap.add_argument('--suffix', default=''); ap.add_argument('--seg', default=None); ap.add_argument('--evallabels', default=None); a = ap.parse_args()
 al = load_all(); K = len(LABELS)
 y = al.label.map({l: i for i, l in enumerate(LABELS)}).fillna(-1).astype(int).values
 tr = (~al.is_test.values) & (al.timestamp.str[:7].values < '2026-10')
@@ -24,6 +24,15 @@ tau = np.full(K, 0.25)
 for it in range(6):
     f = macro_f1(y[tr], decide(oof[tr], tau), per_class=True)
     tau = np.r_[1.0, np.clip(f[1:] / 2, 0.1, 0.45)] * a.scale
+if a.sizeaware:   # assigning a row to class k changes F1_k by about 2(p_k - F_k/2)/(predicted_k + true_k): weigh the margin by class size
+    N = np.ones(K); T = np.bincount(y[tr], minlength=K).astype(float)
+    def decide(p, tau):
+        g = (p[:, 1:] - tau[1:]) / N[1:]; k = g.argmax(1) + 1
+        return np.where(g.max(1) > 0, k, 0)
+    tau = np.full(K, 0.25)
+    for it in range(8):
+        d = decide(oof[tr], tau); f = macro_f1(y[tr], d, per_class=True)
+        tau = np.r_[1.0, np.clip(f[1:] / 2, 0.1, 0.45)]; N = np.bincount(d, minlength=K) + T; N = N / N[1:].mean()
 pred = decide(oof[tr], tau); f = macro_f1(y[tr], pred, per_class=True)
 print('rule macro-F1 on given labels:', round(f.mean(), 4), ' argmax:', round(macro_f1(y[tr], oof[tr].argmax(1)), 4))
 print('tau', dict(zip(LABELS[1:], tau[1:].round(3))))
