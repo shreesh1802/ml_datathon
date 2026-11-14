@@ -1,7 +1,7 @@
 # UPI Fraud Rings — team Vhagar (ML Gradient Wars 2026)
 
-12-class macro-F1 on October 2026 UPI transactions. Best public score: **0.5482** (`sub_G12.csv`).
-`run_all.sh` reproduces every submission from the raw data, ending with `sub_G12.csv` (step 14) and `sub_G13.csv` (step 15). See `SCORE_IMPROVEMENTS.md` for what each step added.
+12-class macro-F1 on October 2026 UPI transactions. Best public score: **0.5487** (`sub_G13.csv`).
+`run_all.sh` reproduces every submission from the raw data, ending with `sub_G13.csv` (step 15). See `SCORE_IMPROVEMENTS.md` for what each step added.
 
 ## How to run
 
