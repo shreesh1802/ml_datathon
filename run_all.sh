@@ -60,3 +60,17 @@ MERCH=0 WIN=43200 $PY src/prop3.py sub_G5 sub_G7 s2
 # 11. plus the merchant step: a round-amount merchant payment on a block phone reveals the type of the other
 #     round-amount payments at that merchant within one day (collusion, QR swap or refund abuse)
 WIN=43200 $PY src/prop3.py sub_G5 sub_G8 s2
+
+# 12. amount features (whole-rupee amounts that are not multiples of 10, exact phishing amounts) and role counts;
+#     the all-months model leaves out the cross-month role counts (feats3n), the monthly model keeps them per month
+$PY src/features3.py
+MONTHLY=1 $PY src/features3.py
+$PY - <<'PYEOF'
+import pandas as pd
+d = pd.read_pickle('cache/feats3.pkl')
+d[[c for c in d.columns if not c.startswith(('rcv_ring', 'snd_ring', 'rcv_was', 'snd_was'))]].to_pickle('cache/feats3n.pkl')
+PYEOF
+$PY src/train.py E2n --driftfix --labels d1 --extra feats2.pkl,feats3n.pkl,feats_seg_s1.pkl --full 3
+$PY src/train.py M2 --driftfix --labels d1 --base feats_m.pkl --extra feats2_m.pkl,feats3_m.pkl,feats_seg_s1.pkl --full 3
+$PY src/make_sub2.py sub_G9raw E2n,M2 --seg s2
+TAGS=E2n,M2 WIN=43200 $PY src/prop3.py sub_G9raw sub_G9 s2

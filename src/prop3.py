@@ -8,7 +8,7 @@ al=load_all(); te=al.is_test.values; mo=al.timestamp.str[:7].values; K=len(LABEL
 tr=(~te)&(mo<'2026-10'); y=al.label.map(L).fillna(-1).astype(int).values
 insub,outsub,segname=sys.argv[1],sys.argv[2],sys.argv[3]
 dn=al.device_id.str[2:].astype(int).values
-oof=(np.load(f'{CACHE}/oof_E1.npy')+np.load(f'{CACHE}/oof_M1.npy'))/2
+TAGS=os.environ.get('TAGS','E1,M1').split(','); oof=sum(np.load(f'{CACHE}/oof_{g}.npy') for g in TAGS)/len(TAGS)
 def decide(p,tau):
     r=p[:,1:]/tau[1:]; k=r.argmax(1)+1; return np.where(r.max(1)>1,k,0)
 tau=np.full(K,.25)

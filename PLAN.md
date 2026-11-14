@@ -250,3 +250,9 @@ An outside audit (`apply_winning_fixes.py`) proposed four fixes. Checked against
 
 New teams reached 0.58–0.63, above the per-class cap of about 0.555 implied by the random fraud rows; we were passed from 4th to 11th at 0.5418. Checks for a further leak (`src/leak1.py`–`leak8.py`), all negative: sample submission, `txn_id` bits and residues, raw string formats, account-age rounding by hour, clustering of random fraud rows on 17 keys, near-duplicate rows, device type and age, per-account consistency of `app` and other columns, and order inside fraud blocks. Summary and untried ideas in `OPEN_PROBLEM_063.md`.
 - **Agent candidates for the 0.63 jump, all negative** (`src/cand1.py`, `src/prop4_agent.py`): phone-owner link, balance continuity, narrow-window links to patterned fraud, and a wider 48-hour propagation script (which changed zero rows as delivered and, once fixed, reproduced G6 with more wrong flips). Details in `AGENT_REPLY_6.md`.
+
+## 17. Amount features and retrain (14 Nov, afternoon)
+
+- `src/features3.py` (from the second agent, checked here): whole-rupee amounts that are not multiples of 10, exact phishing amounts, window counts of both, and cross-role "ring" counts. 99.4% of legit P2P whole-rupee amounts are multiples of 10, so the non-multiples mark fraud.
+- Leave-one-month-out: E2n (all-months, without the cross-month ring counts) 0.5028 against E1 0.5005; M2 (monthly) 0.5018 against M1 0.4984; blend E2n + M2 0.5037 against 0.5008. Phishing gains most (+0.014). The ring counts add nothing in the blend and are left out of the all-months model.
+- `sub_G9` = E2n + M2, block override `s2`, event corrections with G8's settings: training macro-F1 0.5057 against 0.5030 for G8; 58 October rows differ from G8. `run_all.sh` step 12. Details in `AGENT_REPLY_8.md`.
