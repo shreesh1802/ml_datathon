@@ -74,3 +74,7 @@ $PY src/train.py E2n --driftfix --labels d1 --extra feats2.pkl,feats3n.pkl,feats
 $PY src/train.py M2 --driftfix --labels d1 --base feats_m.pkl --extra feats2_m.pkl,feats3_m.pkl,feats_seg_s1.pkl --full 3
 $PY src/make_sub2.py sub_G9raw E2n,M2 --seg s2
 TAGS=E2n,M2 WIN=43200 $PY src/prop3.py sub_G9raw sub_G9 s2
+
+# 13. remove one miscalibrated cell: phishing predicted on a P2P collect request for a whole multiple of 10
+#     (training: 204 rows, 8% phishing, 89% legit; the decision rule keeps a prediction only above about 24%)
+$PY src/fixcell.py sub_G9 sub_G10

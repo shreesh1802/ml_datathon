@@ -258,3 +258,12 @@ New teams reached 0.58–0.63, above the per-class cap of about 0.555 implied by
 - `sub_G9` = E2n + M2, block override `s2`, event corrections with G8's settings: training macro-F1 0.5057 against 0.5030 for G8; 58 October rows differ from G8. `run_all.sh` step 12. Details in `AGENT_REPLY_8.md`.
 - **`features4.py` (balance clamps, exact cut-offs, bait split): no gain.** E3 scores 0.5028 on held-out months, the same as E2n; E3 + M2 0.5035 against 0.5037 for the G9 blend. Trees already find thresholds on raw columns; only arithmetic they cannot build (such as divisibility by 10) adds information. G9 stays. Details in `AGENT_REPLY_9.md`.
 - `sub_G9` scored **0.5453** public (G6 was 0.5418).
+
+## 18. Search for non-threshold structure (14 Nov, afternoon)
+
+Trees find thresholds on raw columns but not digit patterns or exact repeats, so those were scanned directly (`src/scan1.py`–`scan4.py`) on the G9 blend's out-of-fold predictions.
+
+- **Rows called legit:** 23 derived values (paise, last digits and moduli of amount and balance, login seconds, decimals of ages, same amount repeated by sender or receiver, balance equal to another row's amount), alone and by transaction type. No cell above 3.4% fraud against a 2.3% base. Nothing to add.
+- **Rows called fraud, wrong type:** no cell where another fraud type is the majority.
+- **Rows called fraud, mostly legit:** one cell. Phishing predicted on a P2P collect request for a whole multiple of 10 (not of 500, not an exact phishing amount): 204 training rows, 8% phishing, 89% legit. The decision rule keeps a prediction only above about 24%.
+- `src/fixcell.py` sets that cell to legit: training macro-F1 0.5037 → 0.5042 (phishing F1 0.4789 → 0.4853), better in all three months. `sub_G10` = G9 with 46 October rows changed from phishing to legit (`run_all.sh` step 13).
