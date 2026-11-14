@@ -288,3 +288,23 @@ Trees find thresholds on raw columns but not digit patterns or exact repeats, so
 - **Second false-alarm cell** (`src/scan5.py`, `scan6.py`). A scan over 10 row attributes in pairs and triples, for predictions that are mostly legit-labelled and right less than 0.6 of the keep threshold in every month, found one more: QR swap predicted on a MERCHANT payment with a decimal amount (245 training rows, 18% QR swap, 80% legit, against 81% correct for round-amount merchant QR swaps). These are shop payments whose mismatch flag is set. With a looser filter (0.85 of the threshold) and both fixes applied, the scan returns nothing further.
 - `fixcell.py ... qrdec` sets that cell to legit: training macro-F1 0.5042 → 0.5045, QR swap F1 0.5070 → 0.5106, better in each month. `sub_G13` = G12 with 51 October rows changed from QR swap to legit (`run_all.sh` step 15).
 - `sub_G13` scored **0.5487** public (13th; 12th is 0.5505).
+
+## 21. Final per-class measurement (15 Nov, 01:25)
+
+Probes on G13 (0.5487), one class switched to legit each; October F1 = (0.5487 − score) × 12:
+
+| class | probe score | October F1 |
+|---|---|---|
+| refund_abuse | 0.4986 | 0.601 |
+| qr_swap | 0.5026 | 0.553 |
+| layering_chain | 0.5029 | 0.550 |
+| loan_app_extortion | 0.5105 | 0.458 |
+| velocity_bot | 0.5176 | 0.373 |
+| merchant_collusion | 0.5205 | 0.338 |
+
+The other five (mule, SIM swap, takeover, phishing, fake cashback) sum to about 2.72, an average of 0.544.
+
+- **Bots are at their October limit.** From 0.373, October has about 1,300 bot-labelled rows; we predict 307 (269 pool rows, 28 bot-block rows, 10 event corrections), nearly all correct. A detectable share of 23% caps F1 at 0.375. The bot signature (whole-rupee payment of ₹10–499 to an e-commerce or gaming merchant, 1–6 seconds after login) appears on 3 off-pool October rows against 2.8 expected, and none of the 28 October bot-block rows has it (`src/bot4.py`). October has about 7 pool bursts where 13 are expected; the rest of the bot rows are random.
+- **Collusion is near its limit.** About 350 collusion rows in October, 82 predicted: a detectable share of 23% caps F1 near 0.37.
+- **Loan is at its limit** (about a third detectable, as in training).
+- So the October ceiling for this data is about 0.55, and G13 is at it.
