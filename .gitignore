@@ -8,3 +8,4 @@ __pycache__/
 *.pyc
 handoff_src.zip
 rehearsal/
+lookalike_rows.csv
