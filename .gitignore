@@ -1,11 +1,9 @@
-# competition data: get it from the organisers, do not redistribute
 upi-fraud-rings/
-# intermediate features and model outputs (about 10 GB)
 cache/
-# prediction files: sharing predictions between teams is against the rules
 submissions/
+archive/
+rehearsal/
 __pycache__/
 *.pyc
-handoff_src.zip
-rehearsal/
+*.zip
 lookalike_rows.csv

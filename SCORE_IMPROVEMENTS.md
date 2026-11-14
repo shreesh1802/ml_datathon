@@ -53,7 +53,7 @@ Fraud-block phone numbers have gaps; legit ones have none. Each fraud block also
 - On the training run it places the SIM-swap/takeover boundary exactly where the labels switch (425032 / 425039) and matches 2,731 fraud-labelled rows against 2,720 before.
 - In October: 28 rows moved from takeover to SIM swap, and 4 rows at the end of the fraud range moved from legit to collusion.
 
-This came from checking an outside audit. Its main claims were wrong, but its observation about gaps was right (see `AUDIT_REVIEW.md`).
+This came from checking an outside audit. Its main claims were wrong, but its observation about gaps was right.
 
 ### 9 → 10: Event-level type correction (+0.0013)
 Each fraud type has a minority variant that behaves like another type (for example, a bot event that looks like a mule burst). Nothing in a row separates them. But a row on a block phone reveals the true type of its whole event.
@@ -66,6 +66,10 @@ Each fraud type has a minority variant that behaves like another type (for examp
 - **Retrain.** Both models were retrained with these features (E2n and M2). Held-out months: 0.5037 against 0.5008 for the old blend; phishing gains most (+0.014 F1).
 - **Wider event correction.** The link window went from 6 to 12 hours, and a merchant step was added: a round-amount merchant payment on a block phone gives its type to the other round-amount payments at that merchant within a day.
 - Training check for the whole file: 0.5057 against 0.5030 for G8.
+
+### 11 → 13: Decision rule and precision rules (+0.0034)
+- **Class-size-aware decision rule.** Assigning a row to class k changes that class's F1 by about 2(p − F/2)/(predicted + true rows), so the margin is divided by class size. A correct row is worth more in a small class. Held-out months: 0.5034 against 0.5029.
+- **Three precision rules** (`src/fixcell.py`), each a group of predictions that is mostly legit in training: phishing on a P2P collect request for a whole multiple of 10 (8% phishing, 89% legit); QR swap on a merchant payment with a decimal amount (18% QR swap, 80% legit); and any fraud on a legit-range extra phone (11 of 11 legit). The first two arose because label cleaning treats a legit-labelled row the model calls fraud as unreported fraud, which is right about 12% of the time but not in these groups.
 
 ## What did not improve the score
 
@@ -87,24 +91,41 @@ Each fraud type has a minority variant that behaves like another type (for examp
 
 About 61% of fraud-labelled rows are a flat 2.35% of all rows, relabelled at random. They share no entity, timing, attribute or digit pattern with real fraud. A perfect detector of the patterned fraud would score about 0.555 per fraud class, so each class sits near 0.5 for every team. Scores in the 0.54–0.55 range differ by tens of rows, not by a different model.
 
-## Per-class October scores (measured on G1 with probe uploads)
+## Per-class October scores
 
-| Class | October F1 |
-|---|---|
-| mule_account | 0.541 |
-| sim_swap | 0.524 |
-| phishing_collect | 0.518 |
-| fake_cashback | 0.517 |
-| account_takeover | 0.511 |
-| merchant_collusion | 0.300 |
-| bot, layering, QR swap, refund, loan (not probed) | about 0.50 on average |
+Measured with probe uploads: the best file with one class switched to legit, so the drop in score gives that class's F1. Six classes were measured on `sub_G13`, five earlier on `sub_G1`.
 
-## Where to find the details
+| Class | October F1 | Measured on |
+|---|---|---|
+| refund_abuse | 0.601 | G13 |
+| qr_swap | 0.553 | G13 |
+| layering_chain | 0.550 | G13 |
+| mule_account | 0.541 | G1 |
+| sim_swap | 0.524 | G1 |
+| phishing_collect | 0.518 | G1 |
+| fake_cashback | 0.517 | G1 |
+| account_takeover | 0.511 | G1 |
+| loan_app_extortion | 0.458 | G13 |
+| velocity_bot | 0.373 | G13 |
+| merchant_collusion | 0.338 | G13 |
+
+Bots and collusion are low because October has fewer detectable events of those types (about 7 bot bursts where a training month has 13, and half the usual collusion bursts), not because patterns are missed: the bot signature appears on 3 ordinary-phone rows in October against 2.8 expected by chance.
+
+## Where every training fraud row goes
+
+Final models, three training months, 57,519 fraud-labelled rows:
+
+| What happens to the row | Rows | Share |
+|---|---|---|
+| Caught with the right type | 19,808 | 34% |
+| Caught, but with a lookalike type | 2,370 | 4% |
+| Random row that looks legit, predicted legit | 35,296 | 61% |
+| Detectable, but missed | 45 | 0.08% |
+
+## Files
 
 | File | Contents |
 |---|---|
-| `PLAN.md` | Full plan and results log (sections 11–15) |
-| `run_all.sh` | Reproduces every submission from the raw data |
-| `AUDIT_REVIEW.md` | Check of the outside audit |
-| `OOF_CONFUSION_G5.md` | Confusion matrix on training months |
-| `AGENT_REPLY_2.md` – `AGENT_REPLY_4.md` | Replies to the second agent's questions |
+| `README.md` | Approach in brief and how to run |
+| `run_all.sh` | Reproduces `submissions/sub_G13.csv` from the raw data |
+| `src/` | The twelve scripts the pipeline uses |

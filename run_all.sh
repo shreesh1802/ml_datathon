@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# Reproduces every submission, from sub_G1.csv to sub_G12.csv, from the raw data in upi-fraud-rings/.
-# Needs about 12 GB of memory available (RAM plus page file) and 15 GB of free disk; run the steps one at a time, never in parallel. Total time is about 60 minutes on a laptop CPU.
+# Reproduces submissions/sub_G13.csv (public macro-F1 0.5487) from the raw data in upi-fraud-rings/.
+# Needs about 12 GB of memory available (RAM plus page file) and 15 GB of free disk. Steps run one at a time.
+# Total time is about 30 minutes on a laptop CPU.
 set -e
 cd "$(dirname "$0")"
 PY="python -W ignore"
 
-# 1. connection features (all months in one graph)
+# 1. connection features on train and test together (all months in one graph)
 $PY src/features.py
 $PY src/features2.py
 
@@ -16,53 +17,17 @@ $PY src/train.py C4 --driftfix --labels c1 --extra feats2.pkl
 $PY src/clean.py C4 c2
 $PY src/train.py C5 --driftfix --labels c2 --extra feats2.pkl --full 4
 
-# 3. device-number blocks: labels restored on extra phones (y_d1) and the ordered segmentation (feats_seg_s1)
+# 3. phone-number blocks: phones numbered 420000 and above are allocated in ordered blocks by fraud type.
+#    devblock restores labels on those phones (y_d1); segblock segments the blocks from model predictions (s1)
 $PY src/devblock.py C5 d1 c2
 $PY src/segblock.py C5 s1
 
-# 4. final model on the all-months graph
-$PY src/train.py E1 --driftfix --labels d1 --extra feats2.pkl,feats_seg_s1.pkl --full 3
-
-# 5. same model on features where each month is its own graph
+# 4. the same features with each month as its own graph, for the second model
 MONTHLY=1 $PY src/features.py
 MONTHLY=1 $PY src/features2.py
-$PY src/train.py M1 --driftfix --labels d1 --base feats_m.pkl --extra feats2_m.pkl,feats_seg_s1.pkl --full 3
 
-# 6. extra blend members: original fraud types (T1, MT1) and a smaller-tree model (V1)
-$PY - <<'PYEOF'
-import sys, os, numpy as np
-sys.path.insert(0, 'src')
-from common import load_all, CACHE, LABELS
-al = load_all(); y0 = al.label.map({l: i for i, l in enumerate(LABELS)}).fillna(-1).astype(int).values
-y = np.load(os.path.join(CACHE, 'y_d1.npy')).copy(); q = (y0 > 0) & (y > 0) & (y != y0); y[q] = y0[q]
-np.save(os.path.join(CACHE, 'y_t1.npy'), y)
-PYEOF
-$PY src/train.py T1 --driftfix --labels t1 --extra feats2.pkl,feats_seg_s1.pkl --full 3
-$PY src/train.py MT1 --driftfix --labels t1 --base feats_m.pkl --extra feats2_m.pkl,feats_seg_s1.pkl --full 3 --seed 1
-$PY src/train.py V1 --driftfix --labels d1 --extra feats2.pkl,feats_seg_s1.pkl --full 3 --leaves 31 --lr 0.05 --seed 2
-
-# 7. blend, apply the macro-F1 decision rule and the block override, write the file
-$PY src/make_sub2.py sub_G1 E1,M1 --seg s1
-$PY src/make_sub2.py sub_H1 E1,M1,V1,T1,MT1 --seg s1
-
-# 8. best upload: same blend, blocks re-segmented with the phone-number gap signal (fraud blocks have gaps,
-#    each block its own density; legit phones have none). Only the final block override uses it.
-$PY src/segblock2.py C5 s2
-$PY src/make_sub2.py sub_G5 E1,M1 --seg s2
-
-# 9. event-level type correction: a row on a block phone reveals its event's true type; linked rows predicted as the
-#    lookalike type take the block type (training check: 124 rows changed, 112 match the label, 1 was right before)
-MERCH=0 $PY src/prop3.py sub_G5 sub_G6 s2
-
-# 10. same correction with a 12-hour link window (training check: 147 rows changed, 125 match the label, 3 were right before)
-MERCH=0 WIN=43200 $PY src/prop3.py sub_G5 sub_G7 s2
-
-# 11. plus the merchant step: a round-amount merchant payment on a block phone reveals the type of the other
-#     round-amount payments at that merchant within one day (collusion, QR swap or refund abuse)
-WIN=43200 $PY src/prop3.py sub_G5 sub_G8 s2
-
-# 12. amount features (whole-rupee amounts that are not multiples of 10, exact phishing amounts) and role counts;
-#     the all-months model leaves out the cross-month role counts (feats3n), the monthly model keeps them per month
+# 5. amount features: whole-rupee amounts that are not multiples of 10, exact phishing amounts, window counts.
+#    The all-months model leaves out the cross-month role counts (feats3n); the monthly model keeps them per month
 $PY src/features3.py
 MONTHLY=1 $PY src/features3.py
 $PY - <<'PYEOF'
@@ -70,21 +35,26 @@ import pandas as pd
 d = pd.read_pickle('cache/feats3.pkl')
 d[[c for c in d.columns if not c.startswith(('rcv_ring', 'snd_ring', 'rcv_was', 'snd_was'))]].to_pickle('cache/feats3n.pkl')
 PYEOF
+
+# 6. the two final models: all-months graph (E2n) and monthly graph (M2), leave-one-month-out plus a 3-seed full refit
 $PY src/train.py E2n --driftfix --labels d1 --extra feats2.pkl,feats3n.pkl,feats_seg_s1.pkl --full 3
 $PY src/train.py M2 --driftfix --labels d1 --base feats_m.pkl --extra feats2_m.pkl,feats3_m.pkl,feats_seg_s1.pkl --full 3
-$PY src/make_sub2.py sub_G9raw E2n,M2 --seg s2
-TAGS=E2n,M2 WIN=43200 $PY src/prop3.py sub_G9raw sub_G9 s2
 
-# 13. remove one miscalibrated cell: phishing predicted on a P2P collect request for a whole multiple of 10
-#     (training: 204 rows, 8% phishing, 89% legit; the decision rule keeps a prediction only above about 24%)
-$PY src/fixcell.py sub_G9 sub_G10
+# 7. block segmentation again, now also using the gaps in phone numbering (fraud blocks have gaps, each block its
+#    own density; legit phones have none). Used for the final block override (s2)
+$PY src/segblock2.py C5 s2
 
-# 14. size-aware decision rule (a correct row is worth more in a small class), then the same corrections as before,
-#     plus the legit-range rule (a row on a legit-range extra phone is legit)
+# 8. blend the two models, apply the class-size-aware macro-F1 decision rule and the block override
 $PY src/make_sub2.py sub_G12raw E2n,M2 --seg s2 --sizeaware
-TAGS=E2n,M2 WIN=43200 $PY src/prop3.py sub_G12raw sub_G12ev s2
-$PY src/fixcell.py sub_G12ev sub_G12 legitrange
 
-# 15. plus the QR-decimal rule: QR swap predicted on a merchant payment with a decimal amount is set to legit
-#     (training: 245 rows, 18% QR swap, 80% legit)
+# 9. event-level type correction: a row on a block phone reveals its event's true type. Rows linked to it by a shared
+#    account within 12 hours (two hops), or by a shared merchant within a day for round-amount bursts, take that type
+TAGS=E2n,M2 WIN=43200 $PY src/prop3.py sub_G12raw sub_G12ev s2
+
+# 10. three precision rules, each checked on the training months:
+#     - phishing predicted on a P2P collect request for a whole multiple of 10 (8% phishing, 89% legit) -> legit
+#     - any fraud predicted on a legit-range extra phone (11 of 11 legit) -> legit
+#     - QR swap predicted on a merchant payment with a decimal amount (18% QR swap, 80% legit) -> legit
 $PY src/fixcell.py sub_G12ev sub_G13 legitrange qrdec
+
+echo "done: submissions/sub_G13.csv"

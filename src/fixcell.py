@@ -1,6 +1,9 @@
-"""Remove one miscalibrated cell: phishing predicted on a P2P collect request whose amount is a whole multiple of 10
-(but not of 500, and not an exact phishing amount such as 1999 or 9990). On training data these are 8% phishing and
-89% legit, far below the keep threshold of the decision rule. usage: python src/fixcell.py IN_SUB OUT_SUB"""
+"""Precision rules: set to legit three groups of fraud predictions that are mostly legit in the training months.
+1. Phishing predicted on a P2P collect request for a whole multiple of 10 (not of 500, not an exact phishing amount
+   such as 1999 or 9990): 8% phishing, 89% legit. Always applied.
+2. `legitrange`: any fraud predicted on a legit-range extra phone: 11 of 11 legit.
+3. `qrdec`: QR swap predicted on a MERCHANT payment with a decimal amount: 18% QR swap, 80% legit.
+usage: python src/fixcell.py IN_SUB OUT_SUB [legitrange] [qrdec]"""
 import sys,os,numpy as np,pandas as pd
 from common import load_all,CACHE,SUBS,LABELS,macro_f1
 al=load_all(); te=al.is_test.values; mo=al.timestamp.str[:7].values; L={l:i for i,l in enumerate(LABELS)}
